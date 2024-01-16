@@ -104,6 +104,12 @@ def reconn_response(request: dns.DNSRecord):
     answer.header.rcode = dns.RCODE.REFUSED
     return answer
 
+# send request to reset packet number
+def reset_response(request: dns.DNSRecord):
+    answer = request.reply()
+    answer.header.rcode = dns.RCODE.FORMERR
+    return answer
+
 def create_fake_ip(connections: int):  # generates a fake ip address that isn't reserved.
     if connections > 254:
         raise ServerMaxConnectionsException()
@@ -182,7 +188,7 @@ try:
             response = reconn_response(request)
         except PacketsOutOfOrderException as e:
             print("Receiving out of order packets from " + addr[0] + "#" + str(addr[1]))
-            response = reconn_response(request)
+            response = reset_response(request)
         except Exception as e:
             print("Exception raised: " + str(e) + "\n from " + addr[0] + "#" + str(addr[1]))
         finally:
