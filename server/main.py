@@ -182,7 +182,7 @@ try:
             response = reconn_response(request)
         except PacketsOutOfOrderException as e:
             print("Receiving out of order packets from " + addr[0] + "#" + str(addr[1]))
-            respones = reconn_response(request)
+            response = reconn_response(request)
         except Exception as e:
             print("Exception raised: " + str(e) + "\n from " + addr[0] + "#" + str(addr[1]))
         finally:

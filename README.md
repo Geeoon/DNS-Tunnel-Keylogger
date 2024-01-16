@@ -25,3 +25,12 @@ Occurs when client sends a packet with packet_id that doesn't match what is expe
 # Server
 ## Listens on UDP port 53 for DNS packets
 Looks for A record and CNAME record requests. Once an A record has been received, the rest of the data from the client should be CNAME record requests.
+
+### Sending Test Requests
+You can use `nslookup` to send requests to the server:
+
+`nslookup -query=A 1.example.com 127.0.0.1` sends a connection request to localhost.
+
+`nslookup -query=CNAME 1.1.54686520717569636B2062726F776E20666F782E1B.example.com 127.0.0.1` to send a test message to localhost.
+
+The `sld` can be anything if you're testing on localhost, but you need to put something there.
