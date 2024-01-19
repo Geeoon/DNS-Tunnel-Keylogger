@@ -56,11 +56,14 @@ while read -rsn1 letter; do
     # format into encoding
     encoded="$packet_number.$connection_id.$data.$1"
 
+    retries=0
+
     # send data to server
     ns_out=$(nslookup -query=CNAME $encoded $local_server)
-
+    
     # while the packet failed
     while [ $? -eq 1 ]; do
+      retries=$(($retries+1))
       # get RCODE
       response_code=$(echo $ns_out | awk '{print $NF}')
       if [ $response_code = "NXDOMAIN" ]; then
@@ -83,6 +86,11 @@ while read -rsn1 letter; do
       else
         echo "Unknown error."
         # packet has likely been dropped
+      fi
+      # check if tried more than 5 times
+      if [ $retries -gt 5 ]; then
+        echo "Failed after $retries retries"
+        exit 1
       fi
       ns_out=$(nslookup -query=CNAME $encoded $local_server)
     done
