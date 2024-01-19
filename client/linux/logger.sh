@@ -7,7 +7,7 @@
 # check if there are arguments supplied
 if [ $# -eq 0 ]; then
   echo $'Needs second level domain and top level domain as argument.\nEx: "example.com"'
-  exit 1;
+  exit 1
 fi
 
 # set globals
@@ -27,7 +27,7 @@ done
 
 if [ $# -eq 0 ]; then
   echo $'Needs second level domain and top level domain as argument.\nEx: "example.com"'
-  exit 1;
+  exit 1
 fi
 
 # start connection
@@ -35,7 +35,7 @@ ns_out=$(nslookup -query=A $1 $local_server)
 # stop if failed
 if [ $? -eq 1 ]; then
   echo "Connection failed."
-  exit 1;
+  exit 1
 fi
 
 # get connection id based on nslookup output
@@ -72,7 +72,7 @@ while read -rsn1 letter; do
         # stop if failed
         if [ $? -eq 1 ]; then
           echo "Connection failed."
-          exit 1;
+          exit 1
         fi
 
         # get connection id based on nslookup output
@@ -97,4 +97,4 @@ while read -rsn1 letter; do
   fi
 done
 
-exit 0;
+exit 0
