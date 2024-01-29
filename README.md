@@ -17,10 +17,10 @@ It is in the format of `[packet #].[id].[data].[sld].[tld].`
 If the client sends an malformed record request, the server will respond with NXDOMAIN.
 ## Non-Existant Connections
 If the client sends a data packet with an id greater than the # of connections, the server will respond with REFUSED.
+## Out of Order Packets
+Occurs when client sends a packet with packet_id that doesn't match what is expected. The server responds with FORMERR. Clients and servers should reset their packet numbers to 0. Then the client can resend the packet.
 ## Dropped Packets
 Clients should rely on responses as acknowledgements of received packets. If they do not receive a response, resend the same payload.
-## Out of Order Packets
-Occurs when client sends a packet with packet_id that doesn't match what is expected. The server responds with FORMERR. Clients and servers should reset their packet numbers to 0.
 
 # Server
 ## Listens on UDP port 53 for DNS packets

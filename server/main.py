@@ -1,8 +1,6 @@
 from enum import Enum
-import math
 import os
 from random import choice
-import base64
 import socket
 import time
 import dnslib as dns
@@ -163,7 +161,7 @@ try:
             response = request.reply()
             if request.q.qtype == PacketTypes.START.value:
                 # read data from packet
-                data = get_data(str(request.q.qname))
+                # data = get_data(str(request.q.qname))
 
                 # form response
                 # reply with fake IP address, but last octet is current # of connections, starting at 1
@@ -176,7 +174,7 @@ try:
 
                 # form response
                 domain = get_domain_from_full(str(request.q.qname))
-                response.add_answer(dns.RR(rtype=dns.QTYPE.CNAME, rdata=dns.CNAME(domain), ttl=60))   
+                response.add_answer(dns.RR(rtype=dns.QTYPE.CNAME, rdata=dns.CNAME(domain), ttl=60))
         except DNSSyntaxException as e:
             print("Improper syntax for DNS packet from " + addr[0] + "#" + str(addr[1]))
             response = nx_response(request)

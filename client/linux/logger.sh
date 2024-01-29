@@ -7,7 +7,7 @@
 # check if there are arguments supplied
 if [ $# -eq 0 ]; then
   echo $'Needs second level domain and top level domain as argument.\nEx: "example.com"'
-  exit 1;
+  exit 1
 fi
 
 # set globals
@@ -27,7 +27,7 @@ done
 
 if [ $# -eq 0 ]; then
   echo $'Needs second level domain and top level domain as argument.\nEx: "example.com"'
-  exit 1;
+  exit 1
 fi
 
 # start connection
@@ -35,7 +35,7 @@ ns_out=$(nslookup -query=A $1 $local_server)
 # stop if failed
 if [ $? -eq 1 ]; then
   echo "Connection failed."
-  exit 1;
+  exit 1
 fi
 
 # get connection id based on nslookup output
@@ -58,32 +58,31 @@ while read -rsn1 letter; do
 
     # send data to server
     ns_out=$(nslookup -query=CNAME $encoded $local_server)
-
+    
     # while the packet failed
     while [ $? -eq 1 ]; do
       # get RCODE
       response_code=$(echo $ns_out | awk '{print $NF}')
       if [ $response_code = "NXDOMAIN" ]; then
         echo "Malformed request sent."
-        break  # just skip this packet
       elif [ $response_code = "REFUSED" ]; then
         # start connection
         ns_out=$(nslookup -query=A $1 $local_server)
-        # stop if failed
-        if [ $? -eq 1 ]; then
-          echo "Connection failed."
-          exit 1;
+        # set new connection id on success
+        if [ $? -eq 0 ]; then
+          # get connection id based on nslookup output
+          connection_id=$(echo "$ns_out" | tail -2 | grep -o -E '[0-9]*$')
         fi
-
-        # get connection id based on nslookup output
-        connection_id=$(echo "$ns_out" | tail -2 | grep -o -E '[0-9]*$')
       elif [ $response_code = "FORMERR" ]; then
         # there was a mismatch in the expected packet_number. reset counter
         packet_number=0
       else
+        # packet has been dropped or server is down
         echo "Unknown error."
-        # packet has likely been dropped
       fi
+
+      # sleep to prevent spamming
+      sleep 5
       ns_out=$(nslookup -query=CNAME $encoded $local_server)
     done
     # increment packet number
@@ -97,4 +96,4 @@ while read -rsn1 letter; do
   fi
 done
 
-exit 0;
+exit 0
