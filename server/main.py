@@ -23,9 +23,10 @@ class PacketsOutOfOrderException(Exception):
 
 # A means of concatonating data and displaying it.
 class DataParser():
-    def __init__(self):
+    def __init__(self, ip):
         self.last_received = -1
         self.data = bytearray()
+        self.ip = ip
 
     # get number of pushes
     def get_length(self):
@@ -53,7 +54,7 @@ class DataParser():
         return self.data.decode('ascii')
     
     def save_to_disk(self, path: str, id: int):
-        file = open(f'{path}/{int(time.time())}-{id}.log', 'x', encoding='ascii')
+        file = open(f'{path}/{int(time.time())}-{id}-{self.ip}.log', 'x', encoding='ascii')
         file.write(self.data.decode('ascii'))
 
 # Manage all of the data parsers, feed it the raw data that comes before the sld.
@@ -166,7 +167,7 @@ try:
                 # form response
                 # reply with fake IP address, but last octet is current # of connections, starting at 1
                 response.add_answer(dns.RR(rtype=dns.QTYPE.A, rdata=dns.A(create_fake_ip(data_parsers.number_of_connections())), ttl=60))
-                data_parsers.add_parser(DataParser())
+                data_parsers.add_parser(DataParser(addr[0]))
             elif request.q.qtype == PacketTypes.DATA.value:
                 # read data from packet
                 data = get_data(str(request.q.qname))
