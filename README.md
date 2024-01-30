@@ -26,6 +26,10 @@ Clients should rely on responses as acknowledgements of received packets. If the
 ## Listens on UDP port 53 for DNS packets
 Looks for A record and CNAME record requests. Once an A record has been received, the rest of the data from the client should be CNAME record requests.
 
+# Client
+## Linux
+The Linux keylogger is just a bash file. To start the keylogger, run `script --flush -I a.txt`. This will use the script command to send user input to the server. The bash file can be used to send any data piped to it; it just read from stdin, but each time the script is started, a new connection is established.
+
 ### Sending Test Requests
 You can use `nslookup` to send requests to the server:
 

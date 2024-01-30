@@ -45,14 +45,14 @@ connection_id=$(echo "$ns_out" | tail -2 | grep -o -E '[0-9]*$')
 packet_number=0
 
 # read inputs
-while read -rsn1 letter; do
+while read -rsN1 letter; do
   # add each input to queue
   letters="$letters$letter"
 
   # if there are more than 4 letters in queue
   if [ ${#letters} -gt 4 ]; then
     # turn letters to hex
-    data=$(echo $letters | xxd -ps -c 200 | tr -d '\n' | head -c -2)
+    data=$(echo "$letters" | xxd -ps -c 200 | tr -d '\n' | head -c -2)
     # format into encoding
     encoded="$packet_number.$connection_id.$data.$1"
 
