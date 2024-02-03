@@ -1,5 +1,5 @@
 #!/bin/bash
-# Linux keylogger for DNS Keylogger program.
+# Send data to DNS exfiltration server.
 # Usage: command [-flags] domain
 # Options:
 #   -l: localhost
