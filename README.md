@@ -28,7 +28,9 @@ Looks for A record and CNAME record requests. Once an A record has been received
 
 # Client
 ## Linux
-The Linux keylogger is just a bash file. To start the keylogger, run `script --flush -I a.txt`. This will use the script command to send user input to the server. The bash file can be used to send any data piped to it; it just read from stdin, but each time the script is started, a new connection is established.
+The Linux keylogger is two bash scripts. `connection.sh` is used by the `logger.sh` script to send the keystrokes to the server. If you want to manually send data, such as a file, you can pipe data to the `connection.sh` script. It will automatically establish a connection and send the data. 
+
+To start the keylogger, run the command `./logger.sh && exit`. This will silently start the keylogger, and any inputs typed will be sent. `logger.sh` and `connection.sh` must be in the same directory for the keylogger to work. If you want persistance, you can add the command to the .bashrc and/or .bash_profile to start on a new interactive shell or on login.
 
 ### Sending Test Requests
 You can use `nslookup` to send requests to the server:
