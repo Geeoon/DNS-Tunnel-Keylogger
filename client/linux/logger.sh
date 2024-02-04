@@ -7,7 +7,7 @@
 # check if already running
 is_running=`ps aux | grep -i "myscript.sh" | grep -v "grep" | wc -l`
 if [ $is_running -ge 1 ]; then
-  echo "Already running"
+  # echo "Already running"
   exit 1
 fi
 
@@ -19,11 +19,11 @@ while [ $# -gt 0 ]; do
   # check if server is on localhost
   if [ $1 = "-p" ]; then
     if ! [ -n "$2" ]; then
-      echo "You must specify a directory when using the -p option"
+      # echo "You must specify a directory when using the -p option"
       exit 1
     fi
     if ! [ -d "$2" ]; then
-      echo "Directory does not exist"
+      # echo "Directory does not exist"
       exit 1
     fi
     log_file_path="$2/file-$(date +%s).log"
