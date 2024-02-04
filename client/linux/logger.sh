@@ -4,6 +4,12 @@
 # Options:
 #   -p path: give path to log file to listen to
 
+# check if already running
+if pidof -x "abc.sh" >/dev/null; then
+  echo "Already running"
+  exit 1;
+fi
+
 # globals/constants
 log_file_path="/tmp/file-$(date +%s).log"
 
@@ -15,11 +21,11 @@ while [ $# -gt 0 ]; do
       echo "You must specify a directory when using the -p option"
       exit 1
     fi
-    log_file_path="$2"
-    if ! [ -d "$log_file_path" ]; then
+    if ! [ -d "$2" ]; then
       echo "Directory does not exist"
       exit 1
     fi
+    log_file_path="$2/file-$(date +%s).log"
   else
     # if it isn't an option, break out of the loop
     break
@@ -27,12 +33,15 @@ while [ $# -gt 0 ]; do
   shift
 done
 
-echo $log_file_path
-# script -f -q -O "$log_file_path" && exit
+# start background script to check for changes in log file
+(tail -F "$log_file_path" | ./connection.sh -l "example.com") &> /dev/null &
+bg_pid=$!
 
+# start logger
+script -f -q -I "$log_file_path" 2> /dev/null
 
-
-# loop to check for file changes on the log output
-
-
+# stop background script and delete log file
+kill -9 "$bg_pid"
+wait "$bg_pid" &> /dev/null
+rm "$log_file_path"
 exit 0

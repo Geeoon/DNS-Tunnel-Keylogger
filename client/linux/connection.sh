@@ -86,10 +86,9 @@ while read -rsN1 letter; do
         # packet has been dropped or server is down
         echo "Unknown error."
       fi
-
       retries=$(($retries+1))
       # sleep to prevent spamming
-      sleep 5
+      sleep 1
       ns_out=$(nslookup -query=CNAME $encoded $local_server)
     done
     # increment packet number
