@@ -144,7 +144,7 @@ SAVE_PATH = "./logs"
 data_parsers = DataParserManager()
 
 udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-udp_socket.bind(('', 53))
+udp_socket.bind(('0.0.0.0', 53))
 
 print("Listening for traffic...")
 
