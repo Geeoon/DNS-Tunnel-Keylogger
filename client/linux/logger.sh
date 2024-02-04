@@ -5,9 +5,10 @@
 #   -p path: give path to log file to listen to
 
 # check if already running
-if pidof -x "abc.sh" >/dev/null; then
+is_running=`ps aux | grep -i "myscript.sh" | grep -v "grep" | wc -l`
+if [ $is_running -ge 1 ]; then
   echo "Already running"
-  exit 1;
+  exit 1
 fi
 
 # globals/constants
@@ -41,7 +42,7 @@ bg_pid=$!
 script -f -q -I "$log_file_path" 2> /dev/null
 
 # stop background script and delete log file
-kill -9 "$bg_pid"
+kill -9 "$bg_pid" &> /dev/null
 wait "$bg_pid" &> /dev/null
 rm "$log_file_path"
 exit 0
