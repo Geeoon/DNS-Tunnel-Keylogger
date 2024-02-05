@@ -55,7 +55,7 @@ class DataParser():
         return self.data.decode('ascii')
     
     def save_to_disk(self, path: str, id: int):
-        file = open(f'{path}/{int(time.time())}-{id}-{self.ip}.log', 'x', encoding='ascii')
+        file = open(f'{path}/{id}-{self.ip}-{int(time.time())}.log', 'x', encoding='ascii')
         file.write(self.data.decode('ascii'))
 
 # Manage all of the data parsers, feed it the raw data that comes before the sld.
