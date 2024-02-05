@@ -165,7 +165,7 @@ try:
             response = request.reply()
             if request.q.qtype == PacketTypes.START.value:
                 # read data from packet
-                # data = get_data(str(request.q.qname))
+                data = get_data(str(request.q.qname))  # used to filter out random dns queries
 
                 # form response
                 # reply with fake IP address, but last octet is current # of connections, starting at 1
