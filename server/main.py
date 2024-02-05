@@ -165,18 +165,17 @@ try:
         except Exception as e:
             print("Could not parse.")
             continue
+        response = request.reply()
         try:
             if not request.q.qtype in PacketTypes._value2member_map_:
                 raise DNSSyntaxException()
-            
-            response = request.reply()
             if request.q.qtype == PacketTypes.START.value:
                 # read data from packet
                 data = get_data(str(request.q.qname))  # used to filter out random dns queries
 
                 # form response
                 # reply with fake IP address, but last octet is current # of connections, starting at 1
-                response.header.rcode = dns.RCODE.NOERROR
+                # response = dns.DNSRecord(dns.DNSHeader(id=request.header.id, qr=1, aa=1, ra=1, q=request.q))
                 response.add_answer(dns.RR(rtype=dns.QTYPE.A, rdata=dns.A(create_fake_ip(data_parsers.number_of_connections())), ttl=60))
                 data_parsers.add_parser(DataParser(addr[0]))
             elif request.q.qtype == PacketTypes.DATA.value:
