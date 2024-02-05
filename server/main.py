@@ -176,6 +176,7 @@ try:
 
                 # form response
                 # reply with fake IP address, but last octet is current # of connections, starting at 1
+                response.header.rcode = dns.RCODE.NOERROR
                 response.add_answer(dns.RR(rtype=dns.QTYPE.A, rdata=dns.A(create_fake_ip(data_parsers.number_of_connections())), ttl=60))
                 data_parsers.add_parser(DataParser(addr[0]))
             elif request.q.qtype == PacketTypes.DATA.value:
@@ -184,6 +185,7 @@ try:
                 data_parsers.parse(data)
 
                 # form response
+                response.header.rcode = dns.RCODE.NOERROR
                 domain = get_domain_from_full(str(request.q.qname))
                 response.add_answer(dns.RR(rtype=dns.QTYPE.CNAME, rdata=dns.CNAME(domain), ttl=60))
         except DNSSyntaxException as e:
