@@ -151,7 +151,7 @@ data_parsers = DataParserManager()
 udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 # listen on UDP port
-udp_socket.bind(('0.0.0.0', 53))
+udp_socket.bind(('0.0.0.0', PORT))
 
 print("Listening for traffic...")
 
