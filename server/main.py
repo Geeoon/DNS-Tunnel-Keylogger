@@ -175,7 +175,7 @@ try:
 
                 # form response
                 # reply with fake IP address, but last octet is current # of connections, starting at 1
-                # response = dns.DNSRecord(dns.DNSHeader(id=request.header.id, qr=1, aa=1, ra=1, q=request.q))
+                response = dns.DNSRecord(dns.DNSHeader(id=request.header.id, qr=1, aa=1, ra=1, q=request.q))
                 response.add_answer(dns.RR(rtype=dns.QTYPE.A, rdata=dns.A(create_fake_ip(data_parsers.number_of_connections())), ttl=60))
                 data_parsers.add_parser(DataParser(addr[0]))
             elif request.q.qtype == PacketTypes.DATA.value:
