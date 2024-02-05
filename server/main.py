@@ -4,6 +4,7 @@ from random import choice
 import socket
 import time
 import dnslib as dns
+import argparse
 
 class PacketTypes(Enum):
     START = 1  # A Record
@@ -139,11 +140,17 @@ def get_data(full: str):
     stripped = full.rstrip('.')  # remove trailing dot if exists
     return full[:index_of_2nd(stripped, '.')]
 
+parser = argparse.ArgumentParser("video_formatter")
+parser.add_argument('-p', '--port', help='port to listen on', type=int, default=53)
+args = parser.parse_args()
+PORT = args.port
+
 SAVE_PATH = "./logs"
-# listen on UDP port 53, the default DNS port
 data_parsers = DataParserManager()
 
 udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+# listen on UDP port
 udp_socket.bind(('0.0.0.0', 53))
 
 print("Listening for traffic...")
