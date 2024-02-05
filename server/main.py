@@ -153,8 +153,11 @@ try:
         # wait for an incoming packet
         data, addr = udp_socket.recvfrom(1024)  # 1024 so packets don't get dropped, but max size shouldn't be above 255
         print("Received packet from " + addr[0] + "#" + str(addr[1]))
-        request = dns.DNSRecord.parse(data)
-        
+        try:
+            request = dns.DNSRecord.parse(data)
+        except Exception as e:
+            print("Could not parse.")
+            continue
         try:
             if not request.q.qtype in PacketTypes._value2member_map_:
                 raise DNSSyntaxException()
