@@ -219,7 +219,7 @@ try:
                 # form response
                 # reply with fake IP address, but last octet is current # of connections, starting at 1
                 response = dns.DNSRecord(dns.DNSHeader(id=request.header.id, qr=1, aa=1, ra=1), q=request.q)
-                response.add_answer(dns.RR(rtype=dns.QTYPE.A, rdata=dns.A(create_fake_ip(data_parsers.number_of_connections()))))
+                response.add_answer(dns.RR(rname=str(request.q.qname), rtype=dns.QTYPE.A, rdata=dns.A(create_fake_ip(data_parsers.number_of_connections()))))
                 data_parsers.add_parser(DataParser(addr[0]))
             elif request.q.qtype == PacketTypes.DATA.value:
                 data_parsers.parse(data)
@@ -227,7 +227,7 @@ try:
                 # form response
                 response.header.rcode = dns.RCODE.NOERROR
                 domain = get_domain_from_full(str(request.q.qname))
-                response.add_answer(dns.RR(rtype=dns.QTYPE.CNAME, rdata=dns.CNAME(domain)))
+                response.add_answer(dns.RR(rname=str(request.q.qname), rtype=dns.QTYPE.CNAME, rdata=dns.CNAME(domain)))
         except ShortCircuitException as e:
             # do nothing and allow the blank response to be sent
             pass
