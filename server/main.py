@@ -10,6 +10,9 @@ class PacketTypes(Enum):
     START = 1  # A Record
     DATA = 5  # CNAME Record
 
+class NSQueryException(Exception):
+    pass
+
 class DNSSyntaxException(Exception):
     pass
 
@@ -137,13 +140,17 @@ def get_domain_from_full(full: str):
 def get_data(full: str):
     if full.count('.') <= 2:
         raise DNSSyntaxException()
-    stripped = full.rstrip('.')  # remove trailing dot if exists
+    if full == "ns1.dnex.pw." or full == "ns2.dnex.pw.":
+        raise NSQueryException()
+    stripped = full.rstrip('.')  # remove trailing dot
     return full[:index_of_2nd(stripped, '.')]
 
 parser = argparse.ArgumentParser("video_formatter")
 parser.add_argument('-p', '--port', help='port to listen on', type=int, default=53)
+parser.add_argument('ip', type=str)
 args = parser.parse_args()
 PORT = args.port
+IP = args.ip
 
 SAVE_PATH = "./logs"
 data_parsers = DataParserManager()
@@ -187,6 +194,10 @@ try:
                 response.header.rcode = dns.RCODE.NOERROR
                 domain = get_domain_from_full(str(request.q.qname))
                 response.add_answer(dns.RR(rtype=dns.QTYPE.CNAME, rdata=dns.CNAME(domain), ttl=60))
+        except NSQueryException as e:
+            print("Client asking for namespace IP")
+            response = dns.DNSRecord(dns.DNSHeader(id=request.header.id, qr=1, aa=1, ra=1), q=request.q)
+            response.add_answer(dns.RR(rtype=dns.QTYPE.A, rdata=dns.A(IP), ttl=60))
         except DNSSyntaxException as e:
             print("Improper syntax for DNS packet from " + addr[0] + "#" + str(addr[1]))
             response = nx_response(request)
