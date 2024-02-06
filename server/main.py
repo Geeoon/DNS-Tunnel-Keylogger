@@ -160,7 +160,7 @@ def get_data(full: str, domain: str):
         raise UnrelatedException()
     return full[:index_of_2nd(stripped, '.')]
 
-parser = argparse.ArgumentParser("video_formatter")
+parser = argparse.ArgumentParser("dns exfiltration server")
 parser.add_argument('-p', '--port', help='port to listen on', type=int, default=53)
 parser.add_argument('ip', type=str)
 parser.add_argument('domain', type=str)
