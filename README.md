@@ -6,6 +6,7 @@ This takes advantage of DNS tunelling/exfiltration.
 # Protocol
 ## A Record Request
 A record requests indicate the start of a "connection." When the server receives them, it will respond with a fake non-reserved IP address where the last octet contains the id of the client.
+It is in the format of `1.1.1.[sld].[tld].`
 
 Concurrent connections cannot exceed 254, and clients are never considered "disconnected."
 ## CNAME Record Request

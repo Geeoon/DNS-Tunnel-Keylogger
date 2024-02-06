@@ -10,6 +10,14 @@ class PacketTypes(Enum):
     START = 1  # A Record
     DATA = 5  # CNAME Record
 
+# thrown when packets should skip processing
+class ShortCircuitException(Exception):
+    pass
+
+# should be thrown when we determine requests are unrelated to the logger
+class UnrelatedException(Exception):
+    pass
+
 class NSQueryException(Exception):
     pass
 
@@ -141,27 +149,51 @@ def get_domain_from_full(full: str):
     stripped = full.rstrip('.')  # remove trailing dot if exists
     index = index_of_2nd(stripped, '.')
     return full[index + int(index != 0):]
-    
-def get_data(full: str):
-    if full.count('.') <= 2:
-        raise DNSSyntaxException()
-    if full == "ns1.dnex.pw." or full == "ns2.dnex.pw.":
-        raise NSQueryException()
+
+# throws unrelated exception if the data is unrelated to the logger
+def get_data(full: str, domain: str):
     stripped = full.rstrip('.')  # remove trailing dot
+    if not (stripped.endswith(domain) or stripped.endswith("." + domain)):
+        ## TODO: make it so things like eexample.com are not allowed
+        raise ShortCircuitException()
+    if stripped.count('.') != 4:
+        raise UnrelatedException()
     return full[:index_of_2nd(stripped, '.')]
 
 parser = argparse.ArgumentParser("video_formatter")
 parser.add_argument('-p', '--port', help='port to listen on', type=int, default=53)
 parser.add_argument('ip', type=str)
+parser.add_argument('domain', type=str)
 args = parser.parse_args()
+
 PORT = args.port
 IP = args.ip
-
+DOMAIN = args.domain
 SAVE_PATH = "./logs"
 data_parsers = DataParserManager()
 
-udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+# DNS Related
+NS_RECORDS = [dns.NS("ns1." + DOMAIN), dns.NS("ns2." + DOMAIN)]
+ADMIN_EMAIL = "email." + DOMAIN
+SOA_RECORD = dns.SOA(
+    mname=str(NS_RECORDS[0]),
+    rname=ADMIN_EMAIL,
+    times=(
+        20240001, # serial
+        7200, # refresh
+        3600, # retry
+        12096000, # expire
+        3600, # minimum
+    )
+)
+DEFAULT_RECORDS = {
+    DOMAIN: [dns.A(IP), SOA_RECORD] + NS_RECORDS,
+    "ns1."+DOMAIN: [dns.A(IP)],
+    "ns2."+DOMAIN: [dns.A(IP)],
+    "email."+DOMAIN: [dns.CNAME(DOMAIN)],
+}
 
+udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 # listen on UDP port
 udp_socket.bind(('0.0.0.0', PORT))
 
@@ -176,39 +208,47 @@ try:
             request = dns.DNSRecord.parse(data)
         except Exception as e:
             print("Could not parse.")
-            continue
-        response = request.reply()
+            continue  # skip the rest of this loop
+        # make generic response structure
+        response = dns.DNSRecord(dns.DNSHeader(id=request.header.id, qr=1, aa=1, ra=1), q=request.q)
+        
         try:
-            if not request.q.qtype in PacketTypes._value2member_map_:
-                raise DNSSyntaxException()
+            data = get_data(str(request.q.qname), DOMAIN)
             if request.q.qtype == PacketTypes.START.value:
-                # read data from packet
-                data = get_data(str(request.q.qname))  # used to filter out random dns queries
 
                 # form response
                 # reply with fake IP address, but last octet is current # of connections, starting at 1
                 response = dns.DNSRecord(dns.DNSHeader(id=request.header.id, qr=1, aa=1, ra=1), q=request.q)
-                response.add_answer(dns.RR(rtype=dns.QTYPE.A, rdata=dns.A(create_fake_ip(data_parsers.number_of_connections())), ttl=60))
+                response.add_answer(dns.RR(rtype=dns.QTYPE.A, rdata=dns.A(create_fake_ip(data_parsers.number_of_connections()))))
                 data_parsers.add_parser(DataParser(addr[0]))
             elif request.q.qtype == PacketTypes.DATA.value:
-                # read data from packet
-                data = get_data(str(request.q.qname))
                 data_parsers.parse(data)
 
                 # form response
                 response.header.rcode = dns.RCODE.NOERROR
                 domain = get_domain_from_full(str(request.q.qname))
-                response.add_answer(dns.RR(rtype=dns.QTYPE.CNAME, rdata=dns.CNAME(domain), ttl=60))
-        except NSQueryException as e:
-            print("Client asking for namespace IP")
-            response = dns.DNSRecord(dns.DNSHeader(id=request.header.id, qr=1, aa=1, ra=1), q=request.q)
-            response.add_answer(dns.RR(rtype=dns.QTYPE.A, rdata=dns.A(IP), ttl=60))
+                response.add_answer(dns.RR(rtype=dns.QTYPE.CNAME, rdata=dns.CNAME(domain)))
+        except ShortCircuitException as e:
+            # do nothing and allow the blank response to be sent
+            pass
+        except UnrelatedException as e:
+            # process like normal DNS server
+            for name, rrs in DEFAULT_RECORDS.items():
+                if name == str(request.q.qname):
+                    for rdata in rrs:
+                        rqt = rdata.__class__.__name__
+                        if request.q.qtype in ['*', rqt]:
+                            response.add_answer(dns.RR(rname=str(request.q.qname), rtype=request.q.qtype, rclass=1, ttl=60, rdata=rdata))
+            for rdata in NS_RECORDS:
+                response.add_ar(dns.RR(rname=DOMAIN, rtype=dns.QTYPE.NS, rclass=1, ttl=60, rdata=rdata))
+            response.add_ar(dns.RR(rname=DOMAIN, rtype=dns.QTYPE.SOA, rclass=1, ttl=60, rdata=SOA_RECORD))
+            pass
         except DNSSyntaxException as e:
             print("Improper syntax for DNS packet from " + addr[0] + "#" + str(addr[1]))
-            response = blank_response(request)
+            response = nx_response(request)
         except ServerMaxConnectionsException as e:
             print("Server has reached maximum number of concurrent connections from " + addr[0] + "#" + str(addr[1]))
-            response = blank_response(request)
+            response = nx_response(request)
         except NXConnectionException as e:
             print("Connection does not exist from " + addr[0] + "#" + str(addr[1]))
             response = reconn_response(request)
