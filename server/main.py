@@ -96,6 +96,11 @@ class DataParserManager():
             parser.save_to_disk(save_path, i + 1)
 
 
+def blank_response(requets: dns.DNSRecord):
+    answer = request.reply()
+    answer.header.rcode = dns.RCODE.NOERROR
+    return answer
+
 def nx_response(request: dns.DNSRecord):
     answer = request.reply()
     answer.header.rcode = dns.RCODE.NXDOMAIN
@@ -200,10 +205,10 @@ try:
             response.add_answer(dns.RR(rtype=dns.QTYPE.A, rdata=dns.A(IP), ttl=60))
         except DNSSyntaxException as e:
             print("Improper syntax for DNS packet from " + addr[0] + "#" + str(addr[1]))
-            response = nx_response(request)
+            response = blank_response(request)
         except ServerMaxConnectionsException as e:
             print("Server has reached maximum number of concurrent connections from " + addr[0] + "#" + str(addr[1]))
-            response = nx_response(request)
+            response = blank_response(request)
         except NXConnectionException as e:
             print("Connection does not exist from " + addr[0] + "#" + str(addr[1]))
             response = reconn_response(request)
