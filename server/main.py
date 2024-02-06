@@ -93,6 +93,7 @@ class DataParserManager():
         packet_number = int(data[:data.index('.')])
         parser: DataParser = self.parsers[connection_id - 1]
         parser.add(packet_number, bytes.fromhex(hex))
+        return (packet_number, connection_id - 1)
 
     def number_of_connections(self):
         return len(self.parsers)
@@ -203,7 +204,7 @@ try:
     while True:
         # wait for an incoming packet
         data, addr = udp_socket.recvfrom(1024)  # 1024 so packets don't get dropped, but max size shouldn't be above 255
-        print("Received packet from " + addr[0] + "#" + str(addr[1]))
+        # print("Received packet from " + addr[0] + "#" + str(addr[1]))
         try:
             request = dns.DNSRecord.parse(data)
         except Exception as e:
@@ -215,14 +216,15 @@ try:
         try:
             data = get_data(str(request.q.qname), DOMAIN)
             if request.q.qtype == PacketTypes.START.value:
-
+                print(f"Starting connection: {data_parsers.number_of_connections()}")
                 # form response
                 # reply with fake IP address, but last octet is current # of connections, starting at 1
                 response = dns.DNSRecord(dns.DNSHeader(id=request.header.id, qr=1, aa=1, ra=1), q=request.q)
                 response.add_answer(dns.RR(rname=str(request.q.qname), rtype=dns.QTYPE.A, rdata=dns.A(create_fake_ip(data_parsers.number_of_connections()))))
                 data_parsers.add_parser(DataParser(addr[0]))
             elif request.q.qtype == PacketTypes.DATA.value:
-                data_parsers.parse(data)
+                metadata = data_parsers.parse(data)
+                print(f"Parsing data from {metadata[1]}")
 
                 # form response
                 response.header.rcode = dns.RCODE.NOERROR
