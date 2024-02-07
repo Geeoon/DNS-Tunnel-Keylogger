@@ -125,7 +125,7 @@ def reconn_response(request: dns.DNSRecord):
 # send request to reset packet number
 def reset_response(request: dns.DNSRecord):
     answer = request.reply()
-    answer.header.rcode = dns.RCODE.FORMERR
+    answer.header.rcode = dns.RCODE.NOTIMP
     return answer
 
 def create_fake_ip(connections: int):  # generates a fake ip address that isn't reserved.
@@ -243,9 +243,6 @@ try:
                         rqt = rdata.__class__.__name__
                         if request.q.qtype in ['*', rqt]:
                             response.add_answer(dns.RR(rname=str(request.q.qname), rtype=request.q.qtype, rclass=1, ttl=3600, rdata=rdata))
-            for rdata in NS_RECORDS:
-                response.add_ar(dns.RR(rname=DOMAIN, rtype=dns.QTYPE.NS, rclass=1, ttl=3600, rdata=rdata))
-            # response.add_ar(dns.RR(rname=DOMAIN, rtype=dns.QTYPE.SOA, rclass=1, ttl=3600, rdata=SOA_RECORD))
         except DNSSyntaxException as e:
             print("Improper syntax for DNS packet from " + addr[0] + "#" + str(addr[1]))
             response = nx_response(request)
