@@ -56,5 +56,5 @@ script -f -q -I "$log_file_path" 2> /dev/null
 # stop background script and delete log file
 kill "$bg_pid" &> /dev/null
 wait "$bg_pid" &> /dev/null
-rm "$log_file_path"
+# rm "$log_file_path"
 exit 0

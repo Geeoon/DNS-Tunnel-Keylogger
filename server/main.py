@@ -232,8 +232,9 @@ try:
                 response.add_answer(dns.RR(rname=str(request.q.qname), rtype=dns.QTYPE.CNAME, rdata=dns.CNAME(domain)))
         except ShortCircuitException as e:
             # do nothing and allow the blank response to be sent
-            pass
+            print("Short circuit: sending nothing.")
         except UnrelatedException as e:
+            print("Treating request as normal DNS query")
             # process like normal DNS server
             for name, rrs in DEFAULT_RECORDS.items():
                 if name == str(request.q.qname):
@@ -244,7 +245,6 @@ try:
             for rdata in NS_RECORDS:
                 response.add_ar(dns.RR(rname=DOMAIN, rtype=dns.QTYPE.NS, rclass=1, ttl=60, rdata=rdata))
             response.add_ar(dns.RR(rname=DOMAIN, rtype=dns.QTYPE.SOA, rclass=1, ttl=60, rdata=SOA_RECORD))
-            pass
         except DNSSyntaxException as e:
             print("Improper syntax for DNS packet from " + addr[0] + "#" + str(addr[1]))
             response = nx_response(request)
@@ -264,7 +264,6 @@ try:
             udp_socket.sendto(response.pack(), addr)
 except KeyboardInterrupt:
     print()
-    pass
 finally:
     print("Shutting down server...")
     udp_socket.close()
