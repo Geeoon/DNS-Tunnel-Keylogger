@@ -51,10 +51,10 @@ tail -f "$log_file_path" | ./connection.sh "$domain" &> /dev/null &
 bg_pid=$!
 
 # start logger
-script -f -q -I "$log_file_path" #2> /dev/null
+script -f -q -I "$log_file_path" 2> /dev/null
 
 # stop background script and delete log file
-kill -9 "$bg_pid" &> /dev/null
+kill "$bg_pid" &> /dev/null
 wait "$bg_pid" &> /dev/null
 rm "$log_file_path"
 exit 0

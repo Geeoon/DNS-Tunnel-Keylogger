@@ -37,7 +37,7 @@ if [ $# -eq 0 ]; then
 fi
 
 # start connection
-ns_out=$(nslookup -query=A $domain $local_server)
+ns_out=$(nslookup -query=A "1.1.1.$domain" $local_server)
 # stop if failed
 if [ $? -eq 1 ]; then
   echo "Connection failed."
@@ -46,7 +46,6 @@ fi
 
 # get connection id based on nslookup output
 connection_id=$(echo "$ns_out" | tail -2 | grep -o -E '[0-9]*$')
-
 # start packet number at 0
 packet_number=0
 
@@ -90,7 +89,7 @@ while read -rsN1 letter; do
       fi
       retries=$(($retries+1))
       # sleep to prevent spamming
-      sleep 1
+      sleep 0.25
       ns_out=$(nslookup -query=CNAME $encoded $local_server)
     done
     # increment packet number
@@ -101,6 +100,8 @@ while read -rsN1 letter; do
       packet_number=0
     fi
     letters=""
+    # sleep to prevent spamming
+    sleep 0.25
   fi
 done
 
