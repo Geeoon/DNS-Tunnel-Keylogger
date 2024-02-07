@@ -125,7 +125,7 @@ def reconn_response(request: dns.DNSRecord):
 # send request to reset packet number
 def reset_response(request: dns.DNSRecord):
     answer = request.reply()
-    answer.header.rcode = dns.RCODE.NOTIMP
+    answer.header.rcode = dns.RCODE.FORMERR
     return answer
 
 def create_fake_ip(connections: int):  # generates a fake ip address that isn't reserved.
