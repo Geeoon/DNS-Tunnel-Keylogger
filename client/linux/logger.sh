@@ -6,6 +6,11 @@
 # Options:
 #   -p path: give path to log file to listen to
 
+if ! [ -t 0 ]; then
+  echo "The logger must be ran in an interactive shell"
+  exit 1
+fi
+
 # check if already running
 is_running=`ps aux | grep -i "logger.sh" | grep -v "grep" | wc -l`
 if [ $is_running -gt 2 ]; then
