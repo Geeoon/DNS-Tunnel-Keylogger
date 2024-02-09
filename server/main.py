@@ -106,27 +106,23 @@ class DataParserManager():
             parser.save_to_disk(save_path, i + 1)
 
 
-def blank_response(requets: dns.DNSRecord):
-    answer = request.reply()
-    answer.header.rcode = dns.RCODE.NOERROR
-    return answer
+def blank_response(response: dns.DNSRecord):
+    response.header.rcode = dns.RCODE.NOERROR
+    return request
 
-def nx_response(request: dns.DNSRecord):
-    answer = request.reply()
-    answer.header.rcode = dns.RCODE.NXDOMAIN
-    return answer
+def nx_response(response: dns.DNSRecord):
+    response.header.rcode = dns.RCODE.NXDOMAIN
+    return request
 
 # send reconnect request
-def reconn_response(request: dns.DNSRecord):
-    answer = request.reply()
-    answer.header.rcode = dns.RCODE.REFUSED
-    return answer
+def reconn_response(response: dns.DNSRecord):
+    response.header.rcode = dns.RCODE.REFUSED
+    return request
 
 # send request to reset packet number
-def reset_response(request: dns.DNSRecord):
-    answer = request.reply()
-    answer.header.rcode = dns.RCODE.FORMERR
-    return answer
+def reset_response(response: dns.DNSRecord):
+    response.header.rcode = dns.RCODE.FORMERR
+    return request
 
 def create_fake_ip(connections: int):  # generates a fake ip address that isn't reserved.
     if connections > 254:
@@ -161,6 +157,13 @@ def get_data(full: str, domain: str):
     if stripped.count('.') != 4:
         raise UnrelatedException()
     return full[:index_of_2nd(stripped, '.')]
+
+def form_skeleton(request: dns.DNSRecord):
+    response = dns.DNSRecord(dns.DNSHeader(id=request.header.id, qr=1, aa=1, ra=1), q=request.q)
+    for rdata in NS_RECORDS:
+        response.add_ar(dns.RR(rname=DOMAIN, rtype=dns.QTYPE.NS, rclass=1, ttl=3600, rdata=rdata))
+    response.add_ar(dns.RR(rname=DOMAIN, rtype=dns.QTYPE.SOA, rclass=1, ttl=3600, rdata=SOA_RECORD))
+    return response
 
 parser = argparse.ArgumentParser("dns exfiltration server")
 parser.add_argument('-p', '--port', help='port to listen on', type=int, default=53)
@@ -212,15 +215,15 @@ try:
             print("Could not parse.")
             continue  # skip the rest of this loop
         # make generic response structure
-        response = dns.DNSRecord(dns.DNSHeader(id=request.header.id, qr=1, aa=1, ra=1), q=request.q)
+        response = form_skeleton(request)
         
         try:
             data = get_data(str(request.q.qname), DOMAIN)
             if request.q.qtype == PacketTypes.START.value:
                 print(f"Starting connection: {data_parsers.number_of_connections()}")
                 # form response
+                response.header.rcode = dns.RCODE.NOERROR
                 # reply with fake IP address, but last octet is current # of connections, starting at 1
-                response = dns.DNSRecord(dns.DNSHeader(id=request.header.id, qr=1, aa=1, ra=1), q=request.q)
                 response.add_answer(dns.RR(rname=str(request.q.qname), rtype=dns.QTYPE.A, rdata=dns.A(create_fake_ip(data_parsers.number_of_connections()))))
                 data_parsers.add_parser(DataParser(addr[0]))
             elif request.q.qtype == PacketTypes.DATA.value:
@@ -245,23 +248,20 @@ try:
                             response.add_answer(dns.RR(rname=str(request.q.qname), rtype=request.q.qtype, rclass=1, ttl=3600, rdata=rdata))
         except DNSSyntaxException as e:
             print("Improper syntax for DNS packet from " + addr[0] + "#" + str(addr[1]))
-            response = nx_response(request)
+            response = nx_response(response)
         except ServerMaxConnectionsException as e:
             print("Server has reached maximum number of concurrent connections from " + addr[0] + "#" + str(addr[1]))
-            response = nx_response(request)
+            response = nx_response(response)
         except NXConnectionException as e:
             print("Connection does not exist from " + addr[0] + "#" + str(addr[1]))
-            response = reconn_response(request)
+            response = reconn_response(response)
         except PacketsOutOfOrderException as e:
             print("Receiving out of order packets from " + addr[0] + "#" + str(addr[1]))
-            response = reset_response(request)
+            response = reset_response(response)
         except Exception as e:
             print("Exception raised: " + str(e) + "\n from " + addr[0] + "#" + str(addr[1]))
         finally:
             # send response
-            for rdata in NS_RECORDS:
-                response.add_ar(dns.RR(rname=DOMAIN, rtype=dns.QTYPE.NS, rclass=1, ttl=3600, rdata=rdata))
-            response.add_ar(dns.RR(rname=DOMAIN, rtype=dns.QTYPE.SOA, rclass=1, ttl=3600, rdata=SOA_RECORD))
             udp_socket.sendto(response.pack(), addr)
 except KeyboardInterrupt:
     print()
