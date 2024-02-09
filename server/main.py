@@ -64,7 +64,6 @@ class DataParser():
             print("Unable decode last data packet: " + str(data))
         finally:
             self.last_received = packet_number
-            print(self.parse_all())
 
     # parse the last received bytes
     def parse_last(self):
