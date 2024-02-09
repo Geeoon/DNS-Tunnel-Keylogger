@@ -77,6 +77,7 @@ The following is the format to follow for sending data after establishing a conn
 The server will respond with `[code].123.123.123`
 
 `id` is the id that was established on connection. Data is sent as ASCII encoded in hex.
+
 `code` is one of the codes described below.
 ## Response Codes
 ### `200`: OK
