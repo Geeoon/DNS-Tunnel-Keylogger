@@ -157,8 +157,7 @@ def get_domain_from_full(full: str):
 # throws unrelated exception if the data is unrelated to the logger
 def get_data(full: str, domain: str):
     stripped = full.rstrip('.')  # remove trailing dot
-    if not (stripped.endswith(domain) or stripped.endswith("." + domain)):
-        ## TODO: make it so things like eexample.com are not allowed
+    if not stripped.endswith("." + domain):
         raise ShortCircuitException()
     if stripped.count('.') != 5:
         raise UnrelatedException()
