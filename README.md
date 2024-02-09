@@ -1,5 +1,5 @@
 # DNS Keylogger
-This post-exploitation keylogger will automatically report a Windows computer's keystrokes.
+This post-exploitation keylogger will automatically report a computer's keystrokes.
 
 This takes advantage of DNS tunelling/exfiltration.
 
