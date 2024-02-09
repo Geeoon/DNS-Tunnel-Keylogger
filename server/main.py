@@ -117,7 +117,10 @@ def create_start_ip(connections: int):  # generates a fake ip address for connec
     if connections > 254:
         raise ServerMaxConnectionsException()
     fake = ""
-    fake += str(choice([i for i in range(1, 254) if i not in [SentPacketTypes.OK, SentPacketTypes.MALFORMED, SentPacketTypes.NX, SentPacketTypes.OOO, 0, 10, 100, 127, 169, 172, 192, 198, 203, 224, 233, 250, 255]]))
+    reserved = [0, 10, 100, 127, 169, 172, 192, 198, 203, 224, 233, 250, 255]
+    for code in SentPacketTypes:
+        reserved.append(code.value)
+    fake += str(choice([i for i in range(1, 254) if i not in reserved]))
     for i in range(2):
         fake += "." + str(choice(range(256)))
     fake += "." + str(connections + 1)
