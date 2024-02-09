@@ -27,7 +27,7 @@ Clients should rely on responses as acknowledgements of received packets. If the
 
 # Server
 ## Listens on UDP port 53 for DNS packets
-Looks for A record and CNAME record requests. Once an A record has been received, the rest of the data from the client should be CNAME record requests.
+Looks for A record and CNAME record requests. Once an A record has been received, the rest of the data from the client should be CNAME record requests. Use the `-p` flag to specify a port to listen on.
 
 # Client
 ## Linux
