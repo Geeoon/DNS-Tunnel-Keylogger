@@ -1,7 +1,7 @@
-# DNS Tunneling Keylogger
-This post-exploitation keylogger will automatically report a computer's keystrokes.
+# DNS Tunnel Keylogger
+This post-exploitation keylogger will covertly exfiltrate keystrokes to a server. 
 
-This takes advantage of DNS tunelling/exfiltration.
+It uses DNS tunelling/exfiltration to bypass firewalls and avoid detection.
 
 # Server
 ## Setup
