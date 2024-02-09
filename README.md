@@ -43,3 +43,7 @@ You can use `nslookup` to send requests to the server:
 `nslookup -query=A b.1.1.54686520717569636B2062726F776E20666F782E1B.example.com 127.0.0.1` to send a test message to localhost.
 
 The `sld` can be anything if you're testing on localhost, but you need to put something there.
+
+# Side Notes
+## Log file
+The log file containing user inputs contains ASCII control characters, such as backspace, delete, and carriage return. If you print the contents using something like `cat`, you may not see all of the data.
