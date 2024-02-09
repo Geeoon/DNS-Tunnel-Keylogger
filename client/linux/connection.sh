@@ -37,15 +37,15 @@ if [ $# -eq 0 ]; then
 fi
 
 # start connection
-ns_out=$(nslookup -query=A "1.1.1.$domain" $local_server)
-# stop if failed
-if [ $? -eq 1 ]; then
+dig_out=$(dig "a.1.1.1.$domain" A +short)
+# retry if failed
+while [ -z "$dig_out" ]; do
   echo "Connection failed."
-  exit 1
-fi
+  dig_out=$(dig "a.1.1.1.$domain" A +short)
+done
 
 # get connection id based on nslookup output
-connection_id=$(echo "$ns_out" | tail -2 | grep -o -E '[0-9]*$')
+connection_id=$(echo "$dig_out" | grep -o -E '[0-9]*$')
 # start packet number at 0
 packet_number=0
 
@@ -59,38 +59,38 @@ while read -rsN1 letter; do
     # turn letters to hex
     data=$(echo "$letters" | xxd -ps -c 200 | tr -d '\n' | head -c -2)
     # format into encoding
-    encoded="$packet_number.$connection_id.$data.$domain"
+    encoded="b.$packet_number.$connection_id.$data.$domain"
 
     retries=0
 
     # send data to server
-    ns_out=$(nslookup -query=CNAME $encoded $local_server)
+    dig_out=$(dig $encoded A +short)
+    response_code=$(echo "$dig_out" | grep -o -E '^[0-9]*')
     
     # while the packet failed
-    while [ $? -eq 1 ] && [ $retries -le 5 ]; do
-      # get RCODE
-      response_code=$(echo $ns_out | awk '{print $NF}')
-      if [ $response_code = "NXDOMAIN" ]; then
+    while [ "$response_code" -ne "200" ] && [ $retries -le 5 ]; do
+      if [ -n $response_code ]; then
+        echo "Connection failed"
+      elif [ $response_code = "201" ]; then
         echo "Malformed request sent."
-      elif [ $response_code = "REFUSED" ]; then
-        # start connection
-        ns_out=$(nslookup -query=A $domain $local_server)
-        # set new connection id on success
-        if [ $? -eq 0 ]; then
-          # get connection id based on nslookup output
-          connection_id=$(echo "$ns_out" | tail -2 | grep -o -E '[0-9]*$')
+      elif [ $response_code = "202" ]; then
+        $dig_out=$(dig "a.1.1.1.$domain" A +short)
+        if [ -z "$dig_out" ]; then
+          connection_id=$(echo "$dig_out" | grep -o -E '[0-9]*$')
+          response_code="200"
         fi
-      elif [ $response_code = "FORMERR" ]; then
+      elif [ $response_code = "203" ]; then
         # there was a mismatch in the expected packet_number. reset counter
         packet_number=0
+      elif [ $response_code = "204" ]; then
+        echo "Maximum connections."
       else
-        # packet has been dropped or server is down
-        echo "Unknown error."
+        echo "Unknown error"
       fi
       retries=$(($retries+1))
       # sleep to prevent spamming
       sleep 0.25
-      ns_out=$(nslookup -query=CNAME $encoded $local_server)
+      dig_out=$(dig "$encoded" A +short)
     done
     # increment packet number
     packet_number=$(($packet_number+1))
