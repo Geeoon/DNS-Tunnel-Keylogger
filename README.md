@@ -78,21 +78,22 @@ The server will respond with `[code].123.123.123`
 
 `id` is the id that was established on connection. Data is sent as ASCII encoded in hex.
 `code` is one of the codes described below.
-## OK
+# Response Codes
+## `200`: OK
 If the client sends a request that is processed normally, the server will respond with code `200`.
-## Malformed Record Requests
+## `201`: Malformed Record Requests
 If the client sends an malformed record request, the server will respond with code `201`.
-## Non-Existant Connections
+## `202`: Non-Existant Connections
 If the client sends a data packet with an id greater than the # of connections, the server will respond with code `202`.
-## Out of Order Packets
+## `203`: Out of Order Packets
 If the client sends a packet with a packet id that doesn't match what is expected, the server will respond with code `203`. Clients and servers should reset their packet numbers to 0. Then the client can resend the packet with the new packet id.
-## Reached Max Connection
+## `204` Reached Max Connection
 If the client attempts to create a connection when the max has reached, the server will respond with code `204`.
 ## Dropped Packets
 Clients should rely on responses as acknowledgements of received packets. If they do not receive a response, they should resend the same payload.
 
 # Side Notes
-## Log file
+## Log File
 The log file containing user inputs contains ASCII control characters, such as backspace, delete, and carriage return. If you print the contents using something like `cat`, you should select the appropriate option to print ASCII control characters, such as `-v` for `cat`, or open it in a text-editor.
 ## Non-Interactive Shells
 The keylogger relies on `script`, so the keylogger won't run in non-interactive shells.
