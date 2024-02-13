@@ -21,9 +21,9 @@ options:
   -h, --help            show this help message and exit
   -p PORT, --port PORT  port to listen on
 ```
-By default, the server listens port 53. Use the `-p` flag to specify a different port.
+By default, the server listens on UDP port 53. Use the `-p` flag to specify a different port.
 
-`ip` should be the IP address of the server. It is used for SOA and NS records so other nameservers can find the server.
+`ip` is the IP address of the server. It is used in SOA and NS records, which allow other nameservers to find the server.
 
 `domain` is the domain to listen for, which should be the domain that the server is authoritative for.
 
