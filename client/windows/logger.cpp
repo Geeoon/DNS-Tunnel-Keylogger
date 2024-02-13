@@ -14,13 +14,14 @@ LRESULT __stdcall processKey(int nCode, WPARAM wParam, LPARAM lParam) {
 	if (nCode >= 0) {  // do not process key if < 0, as specified by documentation
 		PKBDLLHOOKSTRUCT key = (PKBDLLHOOKSTRUCT)lParam;  
 		if (wParam == WM_KEYDOWN && nCode == HC_ACTION) {
+			GetKeyState(VK_SHIFT);
 			BYTE keyboardState[256];
 			GetKeyboardState(keyboardState);
 			
 			unsigned short translatedChar[2];
 			
 			if (ToAsciiEx(key->vkCode, key->scanCode, keyboardState, translatedChar, key->flags, keyboardLayout) == 1) {  // if only one key in buffer
-				std::cout << key->vkCode << "->" << (char) translatedChar[0] << std::endl;
+				std::cout << key->vkCode << "->" << (char)translatedChar[0] << std::endl;
 			}
 		}
 	}
