@@ -39,7 +39,7 @@ int sendData(int id, int packetNumber, const char* domain, const char* data);
 
 /**
  * Converts a cstring to a std::string containing the hex encoded characters of the cstring.
- * string: 
+ * string: cstring to be converted.
  * returns: the string of hex characters, or an empty string if failed.
  */
 std::string convertToHex(const char* string);
