@@ -12,11 +12,11 @@ if ! [ -t 0 ]; then
 fi
 
 # check if already running
-is_running=`ps aux | grep -i "logger.sh" | grep -v "grep" | wc -l`
-if [ $is_running -gt 2 ]; then
-  echo "Already running"
-  exit 1
-fi
+# is_running=`ps aux | grep -i "logger.sh" | grep -v "grep" | wc -l`
+# if [ $is_running -gt 2 ]; then
+#   echo "Already running"
+#   exit 1
+# fi
 
 # globals/constants
 log_file_path="/tmp/file-$(date +%s).log"

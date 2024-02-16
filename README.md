@@ -51,6 +51,9 @@ Positional Arguments:
 Options:
   -n: number of characters to store before sending a packet
 ```
+## Windows
+### Build
+To build the program, run `make` in the `windows` directory. This will create the `build` directory for you and output to a file named `logger.exe` in the `build` directory. Will listen for all keystrokes when run.
 ## Sending Test Requests
 You can use `dig` to send requests to the server:
 
@@ -94,7 +97,11 @@ If the client attempts to create a connection when the max has reached, the serv
 Clients should rely on responses as acknowledgements of received packets. If they do not receive a response, they should resend the same payload.
 
 # Side Notes
-## Log File
+## Linux
+### Log File
 The log file containing user inputs contains ASCII control characters, such as backspace, delete, and carriage return. If you print the contents using something like `cat`, you should select the appropriate option to print ASCII control characters, such as `-v` for `cat`, or open it in a text-editor.
-## Non-Interactive Shells
+### Non-Interactive Shells
 The keylogger relies on `script`, so the keylogger won't run in non-interactive shells.
+## Windows
+### Repeated Requests
+For some reason, the Windows Dns_Query_A always sends duplicate requests. It still works for sending messages, in nearly ever message, you will get "out of order packet" warnings.
