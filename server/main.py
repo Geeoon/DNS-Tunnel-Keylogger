@@ -54,6 +54,8 @@ class DataParser():
     # add data
     # raises PacketsOutOfOrderException if packet received is in wrong order
     def add(self, packet_number: int, data: bytes):
+        if packet_number == self.last_received:  # repeated packet
+            raise ShortCircuitException()
         if not (packet_number > self.last_received or packet_number == 0):
             self.last_received = 0
             raise PacketsOutOfOrderException()
