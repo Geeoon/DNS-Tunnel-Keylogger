@@ -1,7 +1,7 @@
 # DNS Tunnel Keylogger
 This post-exploitation keylogger will covertly exfiltrate keystrokes to a server. 
 
-It uses DNS tunelling/exfiltration to bypass firewalls and avoid detection.
+These tools excel at lightweight exfiltration and persistence, properties which will prevent detection. It uses DNS tunelling/exfiltration to bypass firewalls and avoid detection.
 
 # Server
 ## Setup
