@@ -103,4 +103,4 @@ The log file containing user inputs contains ASCII control characters, such as b
 The keylogger relies on `script`, so the keylogger won't run in non-interactive shells.
 ## Windows
 ### Repeated Requests
-For some reason, the Windows Dns_Query_A always sends duplicate requests. It still works for sending messages, but on every data messaged received, you will get "out of order packet" warnings.
+For some reason, the Windows Dns_Query_A always sends duplicate requests. The server will process it fine because it discards repeated packets.
