@@ -217,6 +217,8 @@ try:
         response = dns.DNSRecord(dns.DNSHeader(id=request.header.id, qr=1, aa=1, ra=1), q=request.q)
         
         try:
+            if (request.q.qtype != dns.QTYPE.A):
+                raise UnrelatedException()
             data = get_data(str(request.q.qname), DOMAIN)
             data_type = data.split('.', 1)[0]
             rest = data.split('.', 1)[1]
