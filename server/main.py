@@ -161,7 +161,7 @@ def get_data(full: str, domain: str):
     stripped = full.rstrip('.')  # remove trailing dot
     if not (stripped == domain or stripped.endswith("." + domain)):
         raise ShortCircuitException()
-    if stripped.count('.') != (domain.count() + 4):
+    if stripped.count('.') != (domain.count('.') + 4):
         raise UnrelatedException()
     return full[:index_of_2nd(stripped, '.')]
 
