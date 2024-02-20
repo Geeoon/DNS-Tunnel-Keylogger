@@ -1,6 +1,6 @@
 CC = g++
 WIN_FLAGS = -D WIN -lws2_32 -ldnsapi -w
-PROD_FLAGS = -Os
+PROD_FLAGS = -Os -fvisibility=hidden -fvisibility-inlines-hidden -ffunction-sections -fdata-sections
 DEBUG_FLAGS = -g
 
 production: build/logger
