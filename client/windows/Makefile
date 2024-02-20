@@ -1,5 +1,8 @@
 CC = g++
-logger: build/logger.o
-	g++ -o build/logger build/logger.o -D WIN -lws2_32 -ldnsapi -w
+CFLAGS = -D WIN -lws2_32 -ldnsapi -w
+
+build/logger: build/logger.o
+	$(CC) -o $@ $^ $(CFLAGS)
+
 build/logger.o: logger.cpp
-	g++ -c logger.cpp -o build/logger.o
+	$(CC) -o $@ -c $^ $(CFLAGS)

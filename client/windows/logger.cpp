@@ -52,7 +52,6 @@ std::string convertToHex(const char* string);
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     LPSTR lpCmdLine, int nCmdShow) {
-		
 	HANDLE mutex = CreateMutex(0, 0, MUTEX_NAME);  // used to check if the program has already started
 	switch (GetLastError()) {
 		case ERROR_ALREADY_EXISTS:  // program already running
