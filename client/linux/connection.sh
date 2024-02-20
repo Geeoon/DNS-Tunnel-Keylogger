@@ -38,14 +38,16 @@ fi
 
 # start connection
 dig_out=$(dig "a.1.1.1.$domain" A +short)
+
 # retry if failed
-while [ -z "$dig_out" ]; do
+while [ -z "$dig_out" ] || [ $(echo "$dig_out" | grep -E "^[0-9]+.[0-9]+.[0-9]+.[0-9]+$" | wc -l) -ne "1" ]; do
   echo "Connection failed."
   dig_out=$(dig "a.1.1.1.$domain" A +short)
+  sleep 0.25
 done
 
-# get connection id based on nslookup output
-connection_id=$(echo "$dig_out" | grep -o -E '[0-9]*$')
+# get connection id based on dig output
+connection_id=$(echo "$dig_out" | grep -o -E '[0-9]+$')
 # start packet number at 0
 packet_number=0
 
@@ -65,8 +67,11 @@ while read -rsN1 letter; do
 
     # send data to server
     dig_out=$(dig $encoded A +short)
-    response_code=$(echo "$dig_out" | grep -o -E '^[0-9]*')
-    
+    response_code=$(echo "$dig_out" | grep -o -E '^[0-9]+')
+    if [ $(echo "$dig_out" | grep -E "^[0-9]+.[0-9]+.[0-9]+.[0-9]+$" | wc -l) -ne "1" ]; then
+      response_code=500
+    fi
+
     # while the packet failed
     while [ "$response_code" -ne "200" ] && [ $retries -le 5 ]; do
       if [ -n $response_code ]; then
@@ -75,8 +80,8 @@ while read -rsN1 letter; do
         echo "Malformed request sent."
       elif [ $response_code = "202" ]; then
         $dig_out=$(dig "a.1.1.1.$domain" A +short)
-        if [ -z "$dig_out" ]; then
-          connection_id=$(echo "$dig_out" | grep -o -E '[0-9]*$')
+        if [ -z "$dig_out" ] || [ $(echo "$dig_out" | grep -E "^[0-9]+.[0-9]+.[0-9]+.[0-9]+$" | wc -l) -ne "1" ]; then
+          connection_id=$(echo "$dig_out" | grep -o -E '[0-9]+$')
           response_code="200"
         fi
       elif [ $response_code = "203" ]; then
