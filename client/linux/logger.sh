@@ -5,7 +5,7 @@
 #   domain: the domain to send data to
 # Options:
 #   -p path: give path to log file to listen to
-#   -s: run the logger silently, needs to be first option
+#   -l: run the logger with warnings and errors printed
 
 # check if already running
 # is_running=`ps aux | grep -i "logger.sh" | grep -v "grep" | wc -l`
@@ -17,7 +17,7 @@
 # globals/constants
 log_file_path="/tmp/file-$(date +%s).log"
 domain=""
-silent=0
+silent=1
 
 # check command line options
 while [ $# -gt 0 ]; do
@@ -37,8 +37,8 @@ while [ $# -gt 0 ]; do
     fi
     log_file_path="$2/file-$(date +%s).log"
     shift
-  elif [ $1 = "-s" ]; then
-    silent=1
+  elif [ $1 = "-l" ]; then
+    silent=0
   else
     # if it isn't an option, must be a positional argument
     domain="$1"

