@@ -8,7 +8,6 @@
 #include <winsock.h>
 
 #define MAX_BUFFER 5
-#define DOMAIN "dnex.pw"
 #define MUTEX_NAME "1fc325f3-c548-43db-a13f-8c460dda8381"
 
 const DWORD DNS_OPTIONS = DNS_QUERY_BYPASS_CACHE + DNS_QUERY_ACCEPT_TRUNCATED_RESPONSE;
