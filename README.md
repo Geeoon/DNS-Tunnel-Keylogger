@@ -44,7 +44,7 @@ The `-p` option will specify the location of the temporary log file where all th
 
 The `-l` option will show warnings and errors. Can be useful for debugging.
 
-`logger.sh` and `connection.sh` must be in the same directory for the keylogger to work. If you want persistance, you can add the command to `.profile` to start on every new interactive shell or on login.
+`logger.sh` and `connection.sh` must be in the same directory for the keylogger to work. If you want persistance, you can add the command to `.bashrc` to start on every new interactive shell.
 ### `connection.sh`
 ```
 Usage: command [-options] domain
