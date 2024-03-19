@@ -26,6 +26,14 @@ By default, the server listens on UDP port 53. Use the `-p` flag to specify a di
 
 `domain` is the domain to listen for, which should be the domain that the server is authoritative for.
 
+## Registrar
+On the registrar, you want to change your domain's namespace to custom DNS.
+
+Point them to two domains, `ns1.example.com` and `ns2.example.com`.
+![Custom DNS on Spaceship](./screenshots/CustomDNS_Screenshot1.png)
+
+Set your nameservers these domains to point to your exfiltration server.
+![Personal Nameservers on Spaceship](./screenshots/CustomDNS_Screenshot2.png)
 # Client
 ## Linux
 The Linux keylogger is two bash scripts. `connection.sh` is used by the `logger.sh` script to send the keystrokes to the server. If you want to manually send data, such as a file, you can pipe data to the `connection.sh` script. It will automatically establish a connection and send the data.
