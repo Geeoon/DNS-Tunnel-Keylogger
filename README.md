@@ -36,6 +36,8 @@ Point them to two domains, `ns1.example.com` and `ns2.example.com`.
 Add records that make point the namespace domains to your exfiltration server's IP address.
 
 ![Personal Nameservers on Spaceship](./screenshots/CustomNS_Screenshot2.png)
+
+This is the same as setting glue records.
 # Client
 ## Linux
 The Linux keylogger is two bash scripts. `connection.sh` is used by the `logger.sh` script to send the keystrokes to the server. If you want to manually send data, such as a file, you can pipe data to the `connection.sh` script. It will automatically establish a connection and send the data.
