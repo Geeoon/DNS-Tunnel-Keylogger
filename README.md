@@ -33,7 +33,7 @@ Point them to two domains, `ns1.example.com` and `ns2.example.com`.
 
 ![Custom DNS on Spaceship](./screenshots/CustomNS_Screenshot1.png)
 
-Set your nameservers these domains to point to your exfiltration server.
+Add records that make point the namespace domains to your exfiltration server's IP address.
 
 ![Personal Nameservers on Spaceship](./screenshots/CustomNS_Screenshot2.png)
 # Client
