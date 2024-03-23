@@ -43,12 +43,12 @@ This is the same as setting glue records.
 The Linux keylogger is two bash scripts. `connection.sh` is used by the `logger.sh` script to send the keystrokes to the server. If you want to manually send data, such as a file, you can pipe data to the `connection.sh` script. It will automatically establish a connection and send the data.
 ### `logger.sh`
 ```
-# Usage: logger.sh [-options] domain
-# Positional Arguments:
-#   domain: the domain to send data to
-# Options:
-#   -p path: give path to log file to listen to
-#   -l: run the logger with warnings and errors printed
+Usage: logger.sh [-options] domain
+Positional Arguments:
+  domain: the domain to send data to
+Options:
+  -p path: give path to log file to listen to
+  -l: run the logger with warnings and errors printed
 ```
 To start the keylogger, run the command `./logger.sh [domain] && exit`. This will silently start the keylogger, and any inputs typed will be sent. The `&& exit` at the end will cause the shell to close on `exit`. Without it, exiting will bring you back to the non-keylogged shell. Remove the `&> /dev/null` to display error messages.
 
