@@ -67,7 +67,7 @@ Options:
 ```
 ## Windows
 ### Build
-To build keylogging program, run `make` in the `windows` directory. To build with reduced size and some amount of obfuscation, make the `production` target. This will create the `build` directory for you and output to a file named `logger.exe` in the `build` directory.
+To build keylogging program, run `make` in the `windows` directory. To build with reduced size and some amount of obfuscation, make the `production` target. This will create the `build` directory for you and output to a file named `logger.exe` in the `build` directory. I've only tested building using MinGW on Windows 10. If you try using `g++` on a non-Windows machine, you'll likely get build errors related to `windows.h`.
 
 `make production domain=example.com`
 
